@@ -4,7 +4,7 @@ from bottle import route, run, request, response, get
 import json
 
 # add this line
-def login(webdriver, username, password):
+def logins(webdriver, username, password):
     driver = webdriver
     driver.get("https://www.yushuttles.com/")
     time.sleep(1)
@@ -13,16 +13,21 @@ def login(webdriver, username, password):
     element = driver.find_element_by_id("user_pass")
     element.send_keys(password)
     driver.find_element_by_id("wp-submit").click()
+    try:
+        driver.find_element_by_id("login_error")
+        return False
+    except(Exception):
+        pass
     if driver.current_url == "https://www.yushuttles.com/wp-login.php?action=logout":
         driver.get("https://www.yushuttles.com/wp-login.php?action=logout&_wpnonce=9ab014e949")
-        login(driver, username, password)
+        logins(driver, username, password)
     return True
 
 
 def gettimes(username, password, direction):
     driver = webdriver.Chrome("/Users/Aaron/work/YUSHUTTLESSUX/chromedriver/chromedriver")
     time.sleep(.5)
-    login(driver, username, password)
+    logins(driver, username, password)
     if(direction == "wilf"):
         pass
     if(direction == "beren"):
@@ -37,10 +42,20 @@ def gettimes(username, password, direction):
 def bookrides(username, password, times):
     driver = webdriver.Chrome("/Users/Aaron/work/YUSHUTTLESSUX/chromedriver/chromedriver")
     time.sleep(.5)
-    login(driver, username, password)
+    logins(driver, username, password)
     time_element = driver.find_element_by_xpath("//*[@title='{0}']".replace("{0}", times))
     print(time_element.text)
     time_element.click()
+
+@get("/login/<username>/<password>")
+def login(username, password):
+    driver = webdriver.Chrome("/Users/Aaron/work/YUSHUTTLESSUX/chromedriver/chromedriver")
+    isTrue = logins(driver, username, password)
+    response.content_type = 'application/json'
+    response_obj = {}
+    response_obj["login"] = isTrue
+
+
 
 @get("/gettimes/<username>/<password>/<direction>")
 def get_times(username, password, direction):

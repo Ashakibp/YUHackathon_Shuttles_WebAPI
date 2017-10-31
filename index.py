@@ -54,7 +54,9 @@ def login(username, password):
     response.content_type = 'application/json'
     response_obj = {}
     response_obj["login"] = isTrue
-
+    returner = json.dumps(response_obj)
+    driver.close()
+    return returner
 
 
 @get("/gettimes/<username>/<password>/<direction>")

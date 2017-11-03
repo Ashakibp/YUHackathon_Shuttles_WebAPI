@@ -66,16 +66,19 @@ class shuttleAPI():
     def gettimes(self, username, password, direction):
         self.logins(username, password)
         if(direction == "wilf"):
-            pass
+            self.driver.find_element_by_xpath(
+                "//select[@name='app_select_services']/option[text()='Beren to Wilf Campus Shuttle']").click()
         if(direction == "beren"):
-            pass
+            self.driver.find_element_by_xpath(
+                "//select[@name='app_select_services']/option[text()='Wilf to Beren Campus shuttle']").click()
+        self.driver.find_element_by_xpath("//*[@class='app_services_button']").click()
         x = self.driver.find_elements_by_xpath("//*[@class='app_timetable_cell free']")
         time_dict = {}
         for span in x:
             time_dict[span.get_attribute("title")] = span.text[8:].replace("/n", "")
         return time_dict
 
-    def bookrides(self, username, password,direction, times):
+    def bookrides(self, username, password, direction, times):
         t.sleep(.5)
         self.logins(username, password)
         time_element = self.driver.find_element_by_xpath("//*[@title='{0}']".replace("{0}", times))

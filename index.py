@@ -7,11 +7,11 @@ import json
 
 class shuttleAPI():
     def __init__(self):
-        self.display = Display(visible=0, size=(800, 600))
-        self.display.start()
+        #self.display = Display(visible=0, size=(800, 600))
+        #self.display.start()
         self.driver = None
         self.aborting = False
-        self.page_delay = 25
+        self.page_delay = 1
 
 
     def set_selenium_local_session(self):
@@ -20,7 +20,7 @@ class shuttleAPI():
             return self
 
         else:
-            chromedriver_location = './assets/chromedriver'
+            chromedriver_location = './chromedriver/chromedriver'
             chrome_options = Options()
             chrome_options.add_argument('--no-sandbox')
 
@@ -47,6 +47,7 @@ class shuttleAPI():
 
     def logins(self, username, password):
         self.driver.get("https://www.yushuttles.com/")
+        t.sleep(1)
         element = self.driver.find_element_by_id("user_login")
         element.send_keys(username)
         element = self.driver.find_element_by_id("user_pass")
@@ -65,12 +66,13 @@ class shuttleAPI():
 
     def gettimes(self, username, password, direction):
         self.logins(username, password)
+        t.sleep(1)
         if(direction == "wilf"):
             self.driver.find_element_by_xpath(
                 "//select[@name='app_select_services']/option[text()='Beren to Wilf Campus Shuttle']").click()
         if(direction == "beren"):
             self.driver.find_element_by_xpath(
-                "//select[@name='app_select_services']/option[text()='Wilf to Beren Campus shuttle']").click()
+                "//select[@name='app_select_services']/option[text()='Wilf to Beren Campus shuttle ']").click()
         self.driver.find_element_by_xpath("//*[@class='app_services_button']").click()
         x = self.driver.find_elements_by_xpath("//*[@class='app_timetable_cell free']")
         time_dict = {}
@@ -92,6 +94,7 @@ class shuttleAPI():
 @get("/login/<username>/<password>")
 def login(username, password):
     api = shuttleAPI()
+    api.set_selenium_local_session()
     isTrue = api.logins(username, password)
     response.content_type = 'application/json'
     response_obj = {}
@@ -103,6 +106,7 @@ def login(username, password):
 @get("/gettimes/<username>/<password>/<direction>")
 def get_times(username, password, direction):
     api = shuttleAPI()
+    api.set_selenium_local_session()
     time_dict = api.gettimes(username, password, direction)
     time_obj = {"times" : time_dict}
     returner = json.dumps(time_obj)
@@ -116,3 +120,4 @@ def bookride(username, password,direction, time):
     api.bookrides(username, password, direction, time)
 
 
+run()

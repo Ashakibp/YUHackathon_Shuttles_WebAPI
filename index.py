@@ -74,22 +74,41 @@ class shuttleAPI():
             self.driver.find_element_by_xpath(
                 "//select[@name='app_select_services']/option[text()='Wilf to Beren Campus shuttle ']").click()
         self.driver.find_element_by_xpath("//*[@class='app_services_button']").click()
+        t.sleep(.5)
         x = self.driver.find_elements_by_xpath("//*[@class='app_timetable_cell free']")
-        time_dict = {}
+        time_ar = []
         for span in x:
-            time_dict[span.get_attribute("title")] = span.text[8:].replace("/n", "")
-        return time_dict
+            time_ar.append(span.get_attribute("title") + " " + span.text[8:].replace("\n", ""))
+        return time_ar
 
     def bookrides(self, username, password, direction, times):
-        t.sleep(.5)
-        self.logins(username, password)
-        time_element = self.driver.find_element_by_xpath("//*[@title='{0}']".replace("{0}", times))
-        print(time_element.text)
-        time_element.click()
+        try:
+            t.sleep(.5)
+            self.logins(username, password)
+            t.sleep(1)
+            if (direction == "wilf"):
+                self.driver.find_element_by_xpath(
+                    "//select[@name='app_select_services']/option[text()='Beren to Wilf Campus Shuttle']").click()
+            if (direction == "beren"):
+                self.driver.find_element_by_xpath(
+                    "//select[@name='app_select_services']/option[text()='Wilf to Beren Campus shuttle ']").click()
+            self.driver.find_element_by_xpath("//*[@class='app_services_button']").click()
+            t.sleep(.5)
+            time_element = self.driver.find_element_by_xpath("//*[@title='{0}']".replace("{0}", times))
+            time_element.click()
+            t.sleep(2)
+            phone_field = self.driver.find_element_by_id("appointments-field-customer_phone")
+            phone_field.send_keys(0000000000)
+            self.driver.find_element_by_xpath("//*[@class='appointments-confirmation-button']").click()
+            t.sleep(.5)
+            return True
+        except(Exception):
+            return False
+
 
     def close_driver(self):
         self.driver.quit()
-        self.display.stop()
+        #self.display.stop()
 
 @get("/login/<username>/<password>")
 def login(username, password):
@@ -99,6 +118,7 @@ def login(username, password):
     response.content_type = 'application/json'
     response_obj = {}
     response_obj["login"] = isTrue
+    api.close_driver()
     returner = json.dumps(response_obj)
     return returner
 
@@ -110,14 +130,21 @@ def get_times(username, password, direction):
     time_dict = api.gettimes(username, password, direction)
     time_obj = {"times" : time_dict}
     returner = json.dumps(time_obj)
+    api.close_driver()
     response.content_type = 'application/json'
     return returner
 
 
 @get("/bookride/<username>/<password>/<direction>/<time>")
 def bookride(username, password,direction, time):
-    api = shuttleAPI
-    api.bookrides(username, password, direction, time)
+    api = shuttleAPI()
+    api.set_selenium_local_session()
+    returner = api.bookrides(username, password, direction, time)
+    return_dict = {
+        "worked": returner
+    }
+    response.content_type = 'application/json'
+    return return_dict
 
 
 run()

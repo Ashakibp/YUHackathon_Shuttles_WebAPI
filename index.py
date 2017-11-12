@@ -44,7 +44,6 @@ class shuttleAPI():
         return self
 
 
-
     def logins(self, username, password):
         self.driver.get("https://www.yushuttles.com/")
         t.sleep(1)
@@ -104,6 +103,9 @@ class shuttleAPI():
             return True
         except(Exception):
             return False
+    def getrides(self, username, password):
+        self.logins(username, password)
+        self.driver.get("https://www.yushuttles.com/cancel-your-reservation/")
 
 
     def close_driver(self):
@@ -146,5 +148,15 @@ def bookride(username, password,direction, time):
     response.content_type = 'application/json'
     return return_dict
 
+@get("/getRides/<username>/<password>")
+def getRides(username, password):
+    api = shuttleAPI()
+    api.set_selenium_local_session()
+    time_dict = api.getrides(username, password)
+    time_obj = {"times": time_dict}
+    returner = json.dumps(time_obj)
+    api.close_driver()
+    response.content_type = 'application/json'
+    return returner
 
 run()

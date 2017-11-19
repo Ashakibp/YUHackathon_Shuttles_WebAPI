@@ -2,7 +2,7 @@ from pyvirtualdisplay import Display
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import time as t
-from bottle import route, run, request, response, get
+from bottle import route, run, request, response, get, post
 import json
 
 class shuttleAPI():
@@ -46,11 +46,12 @@ class shuttleAPI():
 
     def logins(self, username, password):
         self.driver.get("https://www.yushuttles.com/")
-        t.sleep(1)
+        t.sleep(2)
         element = self.driver.find_element_by_id("user_login")
         element.send_keys(username)
         element = self.driver.find_element_by_id("user_pass")
         element.send_keys(password)
+        t.sleep(2)
         self.driver.find_element_by_id("wp-submit").click()
         try:
             self.driver.find_element_by_id("login_error")
@@ -124,7 +125,6 @@ def login(username, password):
     returner = json.dumps(response_obj)
     return returner
 
-
 @get("/gettimes/<username>/<password>/<direction>")
 def get_times(username, password, direction):
     api = shuttleAPI()
@@ -150,6 +150,77 @@ def bookride(username, password,direction, time):
 
 @get("/getRides/<username>/<password>")
 def getRides(username, password):
+    api = shuttleAPI()
+    api.set_selenium_local_session()
+    time_dict = api.getrides(username, password)
+    time_obj = {"times": time_dict}
+    returner = json.dumps(time_obj)
+    api.close_driver()
+    response.content_type = 'application/json'
+    return returner
+
+
+
+
+
+
+
+
+
+
+
+@post("/login")
+def login():
+    response_json = json.load(request.body)
+    username = response_json["username"]
+    password = response_json["password"]
+    api = shuttleAPI()
+    api.set_selenium_local_session()
+    isTrue = api.logins(username, password)
+    response.content_type = 'application/json'
+    response_obj = {}
+    response_obj["login"] = isTrue
+    api.close_driver()
+    returner = json.dumps(response_obj)
+    return returner
+
+@post("/gettimes")
+def get_times():
+    response_json = json.load(request.body)
+    username = response_json["username"]
+    password = response_json["password"]
+    direction = response_json["direction"]
+    api = shuttleAPI()
+    api.set_selenium_local_session()
+    time_dict = api.gettimes(username, password, direction)
+    time_obj = {"times" : time_dict}
+    returner = json.dumps(time_obj)
+    api.close_driver()
+    response.content_type = 'application/json'
+    return returner
+
+
+@post("/bookride")
+def bookride():
+    response_json = json.load(request.body)
+    username = response_json["username"]
+    password = response_json["password"]
+    direction = response_json["direction"]
+    time = response_json["time"]
+    api = shuttleAPI()
+    api.set_selenium_local_session()
+    returner = api.bookrides(username, password, direction, time)
+    return_dict = {
+        "worked": returner
+    }
+    response.content_type = 'application/json'
+    return return_dict
+
+@post("/getRides")
+def getRides():
+    responeJson = json.load(response.json())
+    username = responeJson["username"]
+    password = responeJson["password"]
     api = shuttleAPI()
     api.set_selenium_local_session()
     time_dict = api.getrides(username, password)

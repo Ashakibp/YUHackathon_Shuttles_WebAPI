@@ -145,6 +145,7 @@ def bookride(username, password,direction, time):
     return_dict = {
         "worked": returner
     }
+    api.close_driver()
     response.content_type = 'application/json'
     return return_dict
 
@@ -158,20 +159,9 @@ def getRides(username, password):
     api.close_driver()
     response.content_type = 'application/json'
     return returner
-
-
-
-
-
-
-
-
-
-
-
-@post("/login")
+@post("/login/")
 def login():
-    response_json = json.load(request.body)
+    response_json = request.json
     username = response_json["username"]
     password = response_json["password"]
     api = shuttleAPI()
@@ -184,9 +174,9 @@ def login():
     returner = json.dumps(response_obj)
     return returner
 
-@post("/gettimes")
+@post("/gettimes/")
 def get_times():
-    response_json = json.load(request.body)
+    response_json = request.json
     username = response_json["username"]
     password = response_json["password"]
     direction = response_json["direction"]
@@ -200,9 +190,9 @@ def get_times():
     return returner
 
 
-@post("/bookride")
+@post("/bookride/")
 def bookride():
-    response_json = json.load(request.body)
+    response_json = request.json
     username = response_json["username"]
     password = response_json["password"]
     direction = response_json["direction"]
@@ -213,12 +203,13 @@ def bookride():
     return_dict = {
         "worked": returner
     }
+    api.close_driver()
     response.content_type = 'application/json'
     return return_dict
 
-@post("/getRides")
+@post("/getRides/")
 def getRides():
-    responeJson = json.load(response.json())
+    responeJson = request.json
     username = responeJson["username"]
     password = responeJson["password"]
     api = shuttleAPI()
@@ -229,5 +220,4 @@ def getRides():
     api.close_driver()
     response.content_type = 'application/json'
     return returner
-
 run()
